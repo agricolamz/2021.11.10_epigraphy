@@ -194,3 +194,5 @@ leaflet() %>%
                 width = 7)
 ```
 
+
+## [Анимированная хронологическая карта кладбища в Рашкове](file:///home/agricolamz/work/materials/2021.11.10_epigraphy/index2.html)
