@@ -161,38 +161,5 @@ leaflet() %>%
                 width = 7)
 ```
 
-## Анимированная хронологическая карта кладбища в Рашкове
-
-```{r}
-df %>%   
-  filter(place == "Рашков",
-         !is.na(year)) %>% 
-  group_by(tombstone_code) %>% 
-  mutate(id = 1:n()) %>% 
-  filter(id == 1) %>% 
-  ungroup() %>% 
-  mutate(value = 1) %>% 
-  arrange(-year) %>% 
-  pivot_wider(names_from = year, values_from = value, values_fill = 0) %>% 
-  pivot_longer(values_to = "value", names_to = "year", `1710`:`1980`) %>% 
-  group_by(tombstone_code, id) %>% 
-  mutate(value = cumsum(value)) ->
-  rsh_sum
-
-library(leaflet.minicharts)
-  
-leaflet() %>% 
-  addTiles() %>% 
-  addLegend(pal = pal_gender,
-            values = rsh_sum$gender,
-            title = "") %>% 
-  addMinicharts(lng = rsh_sum$longitude,
-                lat = rsh_sum$latitude,
-                chartdata = rsh_sum$value,
-                time = as.double(rsh_sum$year), 
-                fillColor = pal_gender(rsh_sum$gender),
-                width = 7)
-```
-
 
 ## [Анимированная хронологическая карта кладбища в Рашкове](file:///home/agricolamz/work/materials/2021.11.10_epigraphy/index2.html)
