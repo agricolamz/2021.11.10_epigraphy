@@ -3,6 +3,8 @@ title: "Дополнительные материалы"
 author: "М. Васильев, Г. Мороз"
 date: "11/11/2021"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -25,5 +27,170 @@ df %>%
              radius = 1,
              fillOpacity = 1, 
              label = ~tombstone_code)
+```
+
+## Гендерное распределение памятников на карте кладбища Стародуба
+
+```{r}
+pal_gender <- colorFactor("Set1", domain = df$gender)
+df %>% 
+  filter(place == "Стародуб",
+         gender != "n") %>% 
+  leaflet() %>% 
+  addTiles() %>% 
+  addCircles(lng = ~longitude,
+             lat = ~latitude,
+             stroke = NA, 
+             radius = 1,
+             fillOpacity = 1, 
+             label = ~tombstone_code,
+             color  = ~pal_gender(gender)) %>% 
+  addLegend(pal = pal_gender,
+            values = ~gender,
+            title = "")
+```
+
+## Расположение надгробий коэнов на кладбище в Стародубе
+
+```{r}
+df %>% 
+  mutate(koen = str_detect(tags, "коэн"),
+         koen = ifelse(is.na(koen), FALSE, koen)) ->
+  df
+
+pal_koen <- colorFactor("Set1", domain = c(TRUE, FALSE), ordered = TRUE)
+
+df %>%   
+  filter(place == "Стародуб") %>% 
+  leaflet() %>% 
+  addTiles() %>% 
+  addCircles(lng = ~longitude,
+             lat = ~latitude,
+             stroke = NA, 
+             radius = 1,
+             fillOpacity = 1, 
+             label = ~tombstone_code,
+             color  = ~pal_koen(koen)) %>% 
+  addLegend(pal = pal_koen,
+            values = ~koen,
+            title = "Распределение коэнов")
+```
+
+
+## Расположение надгробий рожениц на кладбище в Бешенковичах
+
+```{r}
+df %>% 
+  mutate(labour = str_detect(tags, "роды"),
+         labour = ifelse(is.na(labour), FALSE, labour)) ->
+  df
+
+pal_labour <- colorFactor("Set1", domain = c(TRUE, FALSE), ordered = TRUE)
+
+df %>%   
+  filter(place == "Бешенковичи") %>% 
+  leaflet() %>% 
+  addTiles() %>% 
+  addCircles(lng = ~longitude,
+             lat = ~latitude,
+             stroke = NA, 
+             radius = 1,
+             fillOpacity = 1, 
+             label = ~tombstone_code,
+             color  = ~pal_labour(labour)) %>% 
+  addLegend(pal = pal_labour,
+            values = ~labour,
+            title = "Распределение рожениц")
+```
+
+
+## Хронологическая карта кладбища в Стародубе
+
+```{r}
+pal_year <- colorNumeric("BrBG", domain = df$year)
+
+df %>%   
+  filter(place == "Стародуб",
+         !is.na(year),
+         !is.na(latitude)) %>% 
+  leaflet() %>% 
+  addTiles() %>% 
+  addCircles(lng = ~longitude,
+             lat = ~latitude,
+             stroke = NA, 
+             radius = 1,
+             fillOpacity = 1, 
+             label = ~tombstone_code,
+             color  = ~pal_year(year)) %>% 
+  addLegend(pal = pal_year,
+            values = ~year,
+            title = "Распределение по годам")
+```
+
+
+## Анимированная хронологическая карта кладбища в Стародубе
+
+```{r}
+df %>%   
+  filter(place == "Стародуб",
+         !is.na(year)) %>% 
+  group_by(tombstone_code) %>% 
+  mutate(id = 1:n()) %>% 
+  filter(id == 1) %>% 
+  ungroup() %>% 
+  mutate(value = 1) %>% 
+  arrange(-year) %>% 
+  pivot_wider(names_from = year, values_from = value, values_fill = 0) %>% 
+  pivot_longer(values_to = "value", names_to = "year", `1847`:`2011`) %>% 
+  group_by(tombstone_code, id) %>% 
+  mutate(value = cumsum(value)) ->
+  rsh_sum
+
+library(leaflet.minicharts)
+  
+leaflet() %>% 
+  addTiles() %>% 
+  addLegend(pal = pal_gender,
+            values = rsh_sum$gender,
+            title = "") %>% 
+  addMinicharts(lng = rsh_sum$longitude,
+                lat = rsh_sum$latitude,
+                chartdata = rsh_sum$value,
+                time = as.double(rsh_sum$year), 
+                fillColor = pal_gender(rsh_sum$gender),
+                width = 7)
+```
+
+## Анимированная хронологическая карта кладбища в Рашкове
+
+```{r}
+df %>%   
+  filter(place == "Рашков",
+         !is.na(year)) %>% 
+  group_by(tombstone_code) %>% 
+  mutate(id = 1:n()) %>% 
+  filter(id == 1) %>% 
+  ungroup() %>% 
+  mutate(value = 1) %>% 
+  arrange(-year) %>% 
+  pivot_wider(names_from = year, values_from = value, values_fill = 0) %>% 
+  pivot_longer(values_to = "value", names_to = "year", `1710`:`1980`) %>% 
+  group_by(tombstone_code, id) %>% 
+  mutate(value = cumsum(value)) ->
+  rsh_sum
+
+library(leaflet.minicharts)
+  
+leaflet() %>% 
+  addTiles() %>% 
+  addLegend(pal = pal_gender,
+            values = rsh_sum$gender,
+            title = "") %>% 
+  addMinicharts(lng = rsh_sum$longitude,
+                lat = rsh_sum$latitude,
+                chartdata = rsh_sum$value,
+                time = as.double(rsh_sum$year), 
+                fillColor = pal_gender(rsh_sum$gender),
+                width = 7)
 ```
 

@@ -1,0 +1,51 @@
+---
+title: "Дополнительные материалы"
+author: "М. Васильев, Г. Мороз"
+date: "11/11/2021"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library("tidyverse")
+library("leaflet")
+df <- read_csv("https://tinyurl.com/yzfgony9")
+```
+
+
+## Анимированная хронологическая карта кладбища в Рашкове
+
+```{r}
+pal_gender <- colorFactor("Set1", domain = df$gender)
+df %>%   
+  filter(place == "Рашков",
+         !is.na(year)) %>% 
+  group_by(tombstone_code) %>% 
+  mutate(id = 1:n()) %>% 
+  filter(id == 1) %>% 
+  ungroup() %>% 
+  mutate(value = 1) %>% 
+  arrange(-year) %>% 
+  pivot_wider(names_from = year, values_from = value, values_fill = 0) %>% 
+  pivot_longer(values_to = "value", names_to = "year", `1710`:`1980`) %>% 
+  group_by(tombstone_code, id) %>% 
+  mutate(value = cumsum(value)) ->
+  rsh_sum
+
+library(leaflet.minicharts)
+  
+leaflet() %>% 
+  addTiles() %>% 
+  addLegend(pal = pal_gender,
+            values = rsh_sum$gender,
+            title = "") %>% 
+  addMinicharts(lng = rsh_sum$longitude,
+                lat = rsh_sum$latitude,
+                chartdata = rsh_sum$value,
+                time = as.double(rsh_sum$year), 
+                fillColor = pal_gender(rsh_sum$gender),
+                width = 7)
+```
+
