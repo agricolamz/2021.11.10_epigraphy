@@ -1,0 +1,29 @@
+---
+title: "Дополнительные материалы"
+author: "М. Васильев, Г. Мороз"
+date: "11/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+## Расположение памятников на карте кладбища Стародуба
+
+```{r}
+library("tidyverse")
+library("leaflet")
+df <- read_csv("https://tinyurl.com/yzfgony9")
+df %>% 
+  filter(place == "Стародуб") %>% 
+  leaflet() %>% 
+  addTiles() %>% 
+  addCircles(lng = ~longitude,
+             lat = ~latitude,
+             stroke = NA, 
+             radius = 1,
+             fillOpacity = 1, 
+             label = ~tombstone_code)
+```
+
